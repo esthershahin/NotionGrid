@@ -1,3 +1,13 @@
-echo ".env" > .gitignore
-echo "node_modules/" >> .gitignore
-echo ".vercel/" >> .gitignore
+﻿# Environment
+.env
+.env.local
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+.vercel/
+
+# System
+.DS_Store
