@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NotionGrid</title>
+    <style>
+        /* Modern CSS Styles */
+        :root {
+            --primary-bg: #ffffff;
+            --grid-bg: #f5f5f5;
+            --grid-item-bg: #e8e8e8;
+            --button-bg: #f8f8f8;
+            --button-hover: #f0f0f0;
+            --border-color: #e0e0e0;
+            --caption-bg: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+            --transition-speed: 0.25s;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background: var(--primary-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 640px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #refresh-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 12px 24px;
+            background: var(--button-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            width: 130px;
+            transition: all var(--transition-speed) ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        #refresh-btn:hover {
+            background: var(--button-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #refresh-btn:active {
+            transform: translateY(0);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+            width: 100%;
+            background: var(--grid-bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .grid-item {
+            aspect-ratio: 4/5;
+            background: var(--grid-item-bg);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .grid-item:hover {
+            transform: scale(0.98);
+        }
+
+        .grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 14px;
+            color: white;
+            background: var(--caption-bg);
+            transform: translateY(100%);
+            transition: transform var(--transition-speed) ease;
+            font-size: 14px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+            line-height: 1.4;
+        }
+
+        .grid-item:hover .caption {
+            transform: translateY(0);
+        }
+
+        /* Enhanced loading animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .refreshing {
+            animation: spin 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 500px) {
+            body {
+                padding: 16px;
+            }
+            
+            #refresh-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+            
+            .caption {
+                padding: 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <button id="refresh-btn">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+            </svg>
+            Refresh
+        </button>
+        
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const grid = document.getElementById('grid');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const svgIcon = refreshBtn.querySelector('svg');
+
+            async function fetchNotionPosts() {
+                try {
+                    const response = await fetch('/api/notion');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const data = await response.json();
+                    
+                    // Sort by date (newest first)
+                    return data.sort((a, b) => new Date(b.date) - new Date(a.date));
+                } catch (error) {
+                    console.error('Error fetching posts:', error);
+                    return [];
+                }
+            }
+
+            async function createGrid() {
+                svgIcon.classList.add('refreshing');
+                refreshBtn.disabled = true;
+                grid.innerHTML = '';
+                
+                const posts = await fetchNotionPosts();
+                
+                // Create grid items with staggered appearance
+                posts.forEach((post, i) => {
+                    setTimeout(() => {
+                        const item = document.createElement('div');
+                        item.className = 'grid-item';
+                        
+                        if (post.postUrl) {
+                            const img = document.createElement('img');
+                            img.src = post.postUrl;
+                            img.alt = post.caption;
+                            img.loading = 'lazy';
+                            item.appendChild(img);
+                        }
+                        
+                        const caption = document.createElement('div');
+                        caption.className = 'caption';
+                        caption.textContent = post.caption;
+                        item.appendChild(caption);
+                        
+                        grid.appendChild(item);
+                    }, i * 20);
+                });
+                
+                svgIcon.classList.remove('refreshing');
+                refreshBtn.disabled = false;
+            }
+
+            refreshBtn.addEventListener('click', createGrid);
+            
+            // Initialize with smooth entrance
+            setTimeout(createGrid, 300);
+        });
+    </script>
+</body>
+</html>
