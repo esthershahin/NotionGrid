@@ -33,13 +33,13 @@ export default async function handler(req, res) {
           direction: 'descending',
         },
       ],
-      page_size: 30, // Limit to 30 posts
+      page_size: 50, // Get more posts to account for hidden ones
       filter: {
         and: [
           {
-            property: 'Published', // Optional: filter by published status
+            property: 'Hide', // Only filter out posts marked as "Hide"
             checkbox: {
-              equals: true,
+              equals: false,
             },
           },
         ],
@@ -54,9 +54,9 @@ export default async function handler(req, res) {
       let mediaUrl = null;
       let mediaType = 'image';
       
-      if (properties.Media) {
-        if (properties.Media.files && properties.Media.files.length > 0) {
-          const file = properties.Media.files[0];
+      if (properties.Post) {
+        if (properties.Post.files && properties.Post.files.length > 0) {
+          const file = properties.Post.files[0];
           if (file.type === 'file') {
             mediaUrl = file.file.url;
           } else if (file.type === 'external') {
