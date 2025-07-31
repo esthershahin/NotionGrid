@@ -1,36 +1,37 @@
 {
-  "name": "notiongrid",
-  "version": "1.0.0",
-  "type": "module",
-  "description": "Instagram-style grid powered by Notion database",
-  "main": "index.html",
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step needed for static files'",
-    "deploy": "vercel --prod",
-    "preview": "vercel"
+  "version": 2,
+  "functions": {
+    "api/posts.js": {
+      "maxDuration": 10
+    }
   },
-  "dependencies": {
-    "@notionhq/client": "^2.3.0",
-    "dotenv": "^17.2.1"
-  },
-  "devDependencies": {
-    "vercel": "^32.5.0"
-  },
-  "keywords": [
-    "notion",
-    "instagram",
-    "grid",
-    "gallery",
-    "cms"
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
   ],
-  "author": "Your Name",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/esthershahin/notiongrid.git"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
 }
