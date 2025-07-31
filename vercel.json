@@ -1,11 +1,28 @@
 {
   "version": 2,
   "builds": [
-    { "src": "public/**", "use": "@vercel/static" },
-    { "src": "api/notion.js", "use": "@vercel/node" }
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/notion" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ]
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ],
+  "functions": {
+    "api/posts.js": {
+      "maxDuration": 10
+    }
+  }
 }
